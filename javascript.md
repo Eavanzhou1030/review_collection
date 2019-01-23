@@ -220,3 +220,143 @@ for(var x of fib(10)) {
 
 
 ### 9、如何让事件先冒泡后捕获
+
+### 10、一道题浅说JavaScript的事件循环
+##### js是单线程语言，一个时间只能做一件事情
+
+* 事件循环:
+
+  为了协调事件，用户交互，脚本、UI渲染和网络处理等行为，防止主进程的阻塞，事件循环的方案应运而生。 Event Loop包含两类： 一类是基于Browing Context 一类是基于Worker。 两者的运行是独立的，一个JavaScript运行的线程环境都是一个独立的event loop, 每一个Web Worker也有一个独立的Event Loop
+
+
+* 任务队列:
+
+  事件循环是通过任务队列机制进行协调的，一个事件循环中可能存在一个或是多个任务队列,一个任务队列就是一系列有序任务的集合，每个任务都有一个任务源，源于同一个任务源的task必须放在同一个任务队列中，不同源的任务被放在不同的任务队列中。
+
+#### 在事件循环中，每一个循环操作称为一个tick，每一个tick的任务处理模型的关键步骤：
+
+  （1）在此次tick中选择最先进入队列的任务，如果有就执行一次
+  
+  （2）检查是否存在微任务，如果存在就不停地执行，直至清空微任务队列
+
+  （3）更新render
+
+  （4）主线程重复上次操作
+
+#### 异步任务包括： task和microTask
+
+  * Task(McroTask): 宏任务 
+      script(整体代码)、 setTimeout、setInterval、I/O、UI交互事件、postMessage、MessageChannel、setImmediate(Node.js)
+  
+  * MicroTask: 微任务
+      Promise.then、MutationObserver、process.nextTick
+
+在node环境中，会优先清空next tick queue,即通过process.nextTick注册的函数，再清空other queue, 常见的Promise,此外，timers(setTimeout/setInterval)会优先于setImmediate执行，因为前者在timer阶段执行，后者在check阶段执行
+
+```
+  console.log('script start')
+
+  setTimeout(() => {
+    console.log('timeout 1')
+  }, 10)
+
+  new Promise(resolve => {
+    console.log('promise 1')
+    resolve()
+    setTimeout(() => console.log('timeout 2'), 10)
+  }).then(() => {
+    console.log('then1')
+  })
+
+  console.log('script end')
+```
+
+```
+  script start
+  promise 1
+  script end
+  then 1
+  timeout 1
+  timeout 2
+```
+
+```
+  new Promise(resolve => {
+    resolve()
+   
+    Promise.resolve().then(() => {
+      console.log(2)
+    })
+    console.log(4)
+  }).then(() => {
+    console.log(1)
+  })
+
+  console.log(3)
+```
+```
+4321
+
+```
+
+```
+console.log('script start');
+
+setTimeout(function() {
+  console.log('timeout1');
+  new Promise(resolve => {
+        console.log('promise2');
+        resolve();
+    }).then(function() {
+        console.log('then2')
+    })
+}, 10);
+
+new Promise(resolve => {
+    console.log('promise1');
+    setTimeout(() => console.log('timeout2'), 10);
+    resolve();
+}).then(function() {
+    console.log('then1')
+})
+
+console.log('script end');
+```
+```
+script start
+promise 1
+script end
+then 1
+timeout 1
+promise 2
+then 2
+timeout 2
+```
+
+### 11、 JavaScript运行机制
+
+#### JavaScript是单线程，为了利用多核cpu的计算能力，Web Worker允许JavaScript脚本创建多个线程，但是子线程完全受控于主线程，且不能操作DOM
+
+* 同步任务：
+
+  在主线程上排队执行的任务，只有前一个任务执行完毕，才能执行下一个任务
+
+* 异步任务：
+  
+  不进入主线程，而进入‘任务队列’的任务, 只有任务队列通知主线程，某个异步任务就可以执行了，该任务才会进入主进程去执行
+
+#### 异步任务的运行机制
+
+* 所有的同步任务都在主线程上执行，形成一个执行栈
+
+* 主线程之外，还存在一个任务队列，只有异步任务有了运行结果，就在任务队列中放置一个事件
+
+* 一旦'执行栈'中所有的同步任务执行完毕，系统就会读取'任务队列', 异步任务，结束等待状态，进入执行栈，开始执行
+
+* 主线程不断重复上面的第三步
+
+
+### 12、Promise的执行过程
+
+#### promise存在3种状态： pending(进行中) fulfilled(已成功) rejected(已失败)
+
