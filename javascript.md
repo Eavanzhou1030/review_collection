@@ -14,6 +14,39 @@
 
 * 闭包是能够读取其他函数内部变量的函数，或是子函数在外部调用，父函数的作用域不会被释放
 
+* 函数A返回一个函数B，并且函数B中使用了函数A的变量，函数B称为闭包
+
+```
+for(var i = 0; i < 5; i++) {
+  setTimeout(() => {
+    console.log(i)
+  }, i * 1000)
+} //输出5个5
+
+for(var i = 0; i < 5; i++) {
+  (function(j) {
+    setTimeout(() => {
+      console.log(j)
+    }, 1000)
+  }(i))
+}
+
+for(let i = 0; i < 5; i++) {
+  setTimeout(() => {
+    console.log(i)
+  }, 1000)
+}
+
+for ( var i=1; i<=5; i++) {
+	setTimeout( function timer(j) {
+		console.log( j );
+	}, i*1000, i);
+}
+
+```
+都是通过改变变量的作用域实现
+
+
 ### 4、类的创建和继承
 
 * (1) 类的创建
@@ -355,8 +388,190 @@ timeout 2
 
 * 主线程不断重复上面的第三步
 
+### 12、深析原型中的各个难点
 
-### 12、Promise的执行过程
+![原型链](./prototype.png)
 
-#### promise存在3种状态： pending(进行中) fulfilled(已成功) rejected(已失败)
+#### prototype
+
+prototype是一个显式原型属性，只有函数拥有这个属性，基本上所有的函数都拥有这个属性，但是有一个例外
+
+```
+  let fun = Function.prototype.bind()
+```
+
+##### prototype是如何产生的： 声明一个函数的时候，这个属性就会自动被创建
+```
+function Foo() {}
+
+Foo.prototype的值也是一个对象(也就是原型),只有一个属性constructor
+constructor是对应的构造函数，也就是Foo
+```
+
+#### constructor
+
+constructor是一个共有的但是不可枚举的属性，一旦改变了函数的prototype，那么新对象中就没有这个属性(当然可以通过原型链取到constructor)
+```
+function Foo() {}
+Foo.prototyoe = {a: 1}
+console.log(Foo.prototype)
+{
+  a: 1
+}
+```
+
+
+#### __proto__
+
+每个对象都有的隐式原型属性，执行创建该对象的构造函数的原型，其实这个属性指向[[prototype]],但是[[prototype]]是内部属性，我们不能访问，只能通过__proto__进行访问
+
+##### 实例对象的__proto__是如何产生： 当我们使用new操作符的时候，生成的实例对象就拥有__proto__属性
+
+##### new的过程
+
+* 新生成一个对象
+
+* 链接到原型链
+
+* 绑定this
+
+* 返回新对象
+
+```
+  function create() {
+    <!-- 创建一个新的对象 -->
+    let obj = new Object()
+    <!-- 获取构造函数 -->
+    let Con = [].shift.call(arguments)
+    <!-- 链接到原型 -->
+    obj.__proto__ = Con.prototype
+    <!-- 绑定this, 执行构造函数 -->
+    let result = Con.apply(obj, arguments)
+    <!-- 确保new出来的是一个对象 -->
+    return typeof result === 'object' ? result : obj
+  }
+```
+对于实例对象，都是通过new产生的，无论是function Func() {} 或是 let obj = {a: 1},但是对于创建一个对象而言，更推荐使用字面量的方式，因为使用new Object()方式创建的对象，需要通过作用域一层一层才能找到Object
+
+#### Function.proto === Function.prototype
+
+Object.prototype不是由Object创建的，而是引擎自己创建了这个对象，**所有实例都是对象， 但是不是所有的对象都是实例**
+
+引擎先是创建了Object.prototype再创建了Function.prototype,然后通过__proto__将两者联系起来,因为Function.prototype是引擎创建的，所以没有prototype属性,
+
+```
+  var fun = Function.prototype.bind()、
+
+  fun没有prototype属性
+```
+
+**现在可以来解释 Function.__proto__ === Function.prototype 这个问题了。因为先有的 Function.prototype 以后才有的 function Function() ，所以也就不存在鸡生蛋蛋生鸡的悖论问题了。对于为什么 Function.__proto__ 会等于 Function.prototype ，个人的理解是：其他所有的构造函数都可以通过原型链找到 Function.prototype ，并且 function Function() 本质也是一个函数，为了不产生混乱就将 function Function() 的 __proto__ 联系到了 Function.prototype 上。**
+
+* Object 是所有对象的爸爸，所有对象都可以通过 __proto__ 找到它
+* Function 是所有函数的爸爸，所有函数都可以通过 __proto__ 找到它
+* Function.prototype 和 Object.prototype 是两个特殊的对象，他们由引擎来创建
+* 除了以上两个特殊对象，其他对象都是通过构造器 new 出来的
+* 函数的 prototype 是一个对象，也就是原型
+* 对象的 __proto__ 指向原型， __proto__ 将对象和原型连接起来组成了原型链
+
+```
+function Foo() {
+  return this
+}
+
+Foo.getName = function() {
+  console.log('1')
+}
+
+Foo.prototype.getName = function() {
+  console.log('2')
+}
+
+new Foo.getName() // 1
+new Foo().getName() // 2
+```
+从上图可以看出，new Foo()的优先级高于new Foo
+
+```
+new (Foo.getName())
+(new Foo()).getName()
+```
+
+### 13、this指向问题
+
+```
+  function foo() {
+    console.log(this.a)
+  }
+
+  var a = 1
+  foo() //this = window  undefined
+
+  var obj = {
+    a: 2,
+    foo: foo
+  }
+
+  obj.foo() // 2
+
+  <!-- 以上两者情况的this只依赖调用当前的对象，优先级是第二种情况大于第一种情况 -->
+
+  <!-- 以下情况的优先级最高， this只绑定在c上，不会被任何方式修改this的指向 -->
+
+  var c = new foo()
+  c.a = 3
+  console.log(c.a) // 3
+
+  <!-- 还有利用call/apply/bind改变this，这个优先级仅次于new -->
+  
+```
+
+```
+  function a() {
+    return () => {
+      return () => {
+        console.log(this)
+      }
+    }
+  }
+
+  console.log(a()()())  // window
+```
+**箭头函数是没有this，这个函数的this只取决于他外面的第一个不是箭头函数的this，所以上面的例子的this指向window，并且this一旦绑定了上下文，就不会被任何代码修改，箭头函数也没有arguments属性**
+
+### 14、 执行上下文
+
+* 全局执行上下文
+
+* 函数执行上下文
+
+* eval执行上下文
+
+**每个执行上下文都有三个重要的属性**
+
+* 变量对象(VO)： 包括变量、函数声明、函数的形参，该属性只在全局上下文中访问
+
+* 作用域链
+
+* this
+
+```
+b() // call b
+
+console.log(a) // undefined
+
+var a = 'hello world'
+
+function b() {
+  console.log('call b')
+}
+```
+在生成执行上下文时，会有两个阶段：
+
+* 创建的阶段（创建VO）,js会找到需要提升的变量和函数，并且给他们提前开辟好空间，函数会将整个存入内存中，变量只声明并且复制为undefined（在变量提升的过程中，相同的函数会覆盖上一个函数，并且函数优先于变量提升）
+
+* 代码执行阶段，可以直接提前使用
+
+**let提升声明但没有赋值，因为临时区的存在不能在声明前使用**
+
 
