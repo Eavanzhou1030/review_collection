@@ -247,9 +247,14 @@ for(var x of fib(10)) {
 * 处于目标阶段
 * 事件冒泡阶段
 
-##### addEventListen(事件名， 事件处理函数， Boolean) 
+##### addEventListen(事件名， 事件处理函数， Boolean || obj) 
 * true表示在事件的捕获阶段调用处理函数 
 * false表示在事件冒泡阶段调用处理函数
+
+对象参数可以有以下几个属性： 
+* capture: 布尔值，与useCapture的作用一样
+* once: 布尔值，值为true表示该回调只会执行一次，调用之后移除监听
+* passive: 布尔值，表示永远不会调用preventDeafult
 
 
 ### 9、如何让事件先冒泡后捕获
@@ -305,6 +310,8 @@ for(var x of fib(10)) {
 ```
 
 ```
+  microtask会在每个阶段独立完成之后立即执行
+
   script start
   promise 1
   script end
@@ -460,7 +467,7 @@ Object.prototype不是由Object创建的，而是引擎自己创建了这个对�
 引擎先是创建了Object.prototype再创建了Function.prototype,然后通过__proto__将两者联系起来,因为Function.prototype是引擎创建的，所以没有prototype属性,
 
 ```
-  var fun = Function.prototype.bind()、
+  var fun = Function.prototype.bind()
 
   fun没有prototype属性
 ```
@@ -574,4 +581,191 @@ function b() {
 
 **let提升声明但没有赋值，因为临时区的存在不能在声明前使用**
 
+### 15、跨域问题
+
+* JSONP: 利用script标签没有跨域限制，通过script标签指向一个需要访问的地址并提供一个回调函数来接收数据，**jsonp的方式只局限于get请求**
+
+```
+  function jsonp(url, jsonpCallback, success) {
+    let script = document.createEelment('script')
+    script.src = url
+    script.async = true
+    script.type = 'text/javascript'
+    window[jsonpCallback] = function(data) {
+      success && success(data)
+    }
+    document.body.appendChild(script)
+  }
+
+  jsonp('http://xxx', 'callback', function(value) {
+    console.log('value')
+  })
+```
+
+* CORS: CORS需要浏览器和后端同时支持，浏览器会主动进行CORS通信，实现CORS通信主要是后端，服务端设置'Access-Control-Allow-Origin'可以开启cors,该属性表示哪些域名可以访问资源
+
+* document.domain: 该方式用于二级域名相同的情况之下，比如'a.test.com'和'b.test.com'， 只要在页面上添加document.domain = 'test.com'即可
+
+* postMessage: 这种方式主要 用于获取嵌入页面的第三方数据，一个页面发送数据，另一个页面判断来源并且接受数据
+
+```
+<!-- 发送数据端 -->
+widnow.parent.postMessage('message', 'http://test.com')
+<!-- 接收消息端 -->
+var mc = new MessageChannel()
+mc.addEventListener('message', event => {
+  var origin = event.origin || event.originalEvent.origin
+  if(origin === 'http://test.com') {
+    console.log('验证通过')
+  }
+})
+```
+### 16、浏览器的缓存策略
+
+* 强缓存：
+
+  实现强缓存可以通过两个响应头实现: Expires和Cache-Control。强缓存表示 **在缓存期间不需要请求，status code为200**
+
+* 协商缓存：
+
+  如果缓存过期，我们可以使用协商缓存来解决问题，协商缓存需要请求，如果缓存有效，返回304，协商缓存需要客户端和服务器端共同实现
+
+##### 缓存策略
+
+* 对于不需要缓存的资源，使用Cache-Control: no-store表示资源不需要缓存
+
+* 对于频繁变动的资源，可以使用Cache-Control: no-cache并配合ETag使用，表示资源已经缓存，但是每次发送请求都会询问资源是否更新
+
+* 对于代码文件来说，通常使用Cache-Control:max-ag = 31536000并配合策略缓存使用，然后对文件进行指纹处理，一旦文件名改动就立即下载新的文件
+
+### 17、如何渲染几万条数据而页面不会卡住
+这道题考察了如何在不卡住页面的情况下渲染数据，也就是说不能一次性将几万条都渲染出来，而应该一次渲染部分 DOM，那么就可以通过 requestAnimationFrame 来每 16 ms 刷新一次。
+
+```
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <ul>
+      控件
+    </ul>
+    <script>
+      setTimeout(() => {
+        // 插入十万条数据
+        const total = 100000
+        // 一次插入 20 条，如果觉得性能不好就减少
+        const once = 20
+        // 渲染数据总共需要几次
+        const loopCount = total / once
+        let countOfRender = 0
+        let ul = document.querySelector('ul')
+        function add() {
+          // 优化性能，插入不会造成回流
+          const fragment = document.createDocumentFragment()
+          for (let i = 0; i < once; i++) {
+            const li = document.createElement('li')
+            li.innerText = Math.floor(Math.random() * total)
+            fragment.appendChild(li)
+          }
+          ul.appendChild(fragment)
+          countOfRender += 1
+          loop()
+        }
+        function loop() {
+          if (countOfRender < loopCount) {
+            window.requestAnimationFrame(add)
+          }
+        }
+        loop()
+      }, 0)
+    </script>
+  </body>
+</html>
+```
+
+### 18、事件委托
+  事件委托就是事件代理，利用事件冒泡，只指定一个事件处理程序，就可以管理一类型的数据
+  
+* 为什么使用事件代理: 在js中，添加到页面的事件处理程序的数量直接影响到页面的运行性能，因为需要不断地和DOM节点发生交互，访问DOM的次数越多，引起重绘重排的次数越来越多，就会延长页面的交互就绪时间，使用事件委托 **就会将所有的操作都放到js程序中，与DOM的操作只需要交互一次，这样就能大大减少DOM的操作**
+
+* 事件委托的原理： 事件委托是使用事件冒泡的原理来实现的，就是从事件最深的节点开始，然后逐层向上传播事件，举个例子：页面上有这么一个节点树，div>ul>li>a;比如给最里面的a加一个click点击事件，那么这个事件就会一层一层的往外执行，执行顺序a>li>ul>div，有这样一个机制，那么我们给最外面的div加点击事件，那么里面的ul，li，a做点击事件的时候，都会冒泡到最外层的div上，所以都会触发，这就是事件委托，委托它们父级代为执行事件。
+
+```
+window.onload = function(){
+　var oUl = document.getElementById("ul1");
+　oUl.onclick = function(ev){
+　　var ev = ev || window.event;
+　　var target = ev.target || ev.srcElement;
+  　if(target.nodeName.toLowerCase() == 'li'){
+　 　　alert(123);
+　　　　alert(target.innerHTML);
+　　}
+　}
+}
+```
+
+### 19、扁平化数组
+
+* 递归
+```
+var arr = [1, [2,3], [4,5,7]]
+
+function flatten(arr) {
+  var result = []
+  for(let i = 0 ; i < arr.length; i++) {
+    if(Array.isArray(arr[i])) {
+      result = result.concat(flatten(arr[i]))
+    } else {
+      result.push(arr[i])
+    }
+  }
+  return result
+}
+```
+
+* toString
+```
+var arr = [1, [2,3], [4,5,7]]
+
+function flatten(arr) {
+  return arr.toString().split(',').map(item => {
+    return +item
+  })
+}
+```
+
+* reduce
+```
+var arr = [1, [2,3], [4,5,7]]
+
+function flatten(arr) {
+  return arr.reduce((prev, next) => {
+    return prev.concat(Array.isArray(next) ? flatten(next) : next)
+  }, [])
+}
+
+console.log(flatten(arr))
+```
+
+* ...扩展运算符
+```
+var arr = [1, [2,3], [4,5,7, [1,6,7]]]
+
+function flatten(arr) {
+  while(arr.some(item => Array.isArray(item))) {
+    arr = [].concat(...arr)
+  }
+
+  return arr
+}
+
+console.log(flatten(arr))
+```
+
+* 
 
