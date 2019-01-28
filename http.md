@@ -1,1 +1,1 @@
-### 1、http请求中keep-alive
+http的底层是基于TCP/IP的关于数据如何在万维网中如何通信的协议
