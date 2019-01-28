@@ -28,7 +28,7 @@
  
 * flex-basis: 定义了在分配多余空间之前，项目占据的主轴空间，根据这个属性，计算主轴上是否有多余的空间， auto即为项目的本来大小
 
-* flex: flex-frow flex-shrink flex-basis的简写，默认值是0 1 auto， auto（1 1 auto） | none（0 0 auto）
+* flex: flex-grow flex-shrink flex-basis的简写，默认值是0 1 auto， auto（1 1 auto） | none（0 0 auto）
 
 * align-self: 单个项目与其他项目不一样的对齐方式,auto表示继承align-items的属性，如果没有父元素，则等同于stretch
 
@@ -62,7 +62,7 @@ padding-box: content + padding
 ### 4、BFC（块级格式化上下文，用于清除浮动，防止margin重叠等）
 链接： https://www.cnblogs.com/libin-1/p/7098468.html
 
-块级格式化上下文： 一个独立的渲染区域，并且有一定的布局规则
+块级格式化上下文： 一个独立的渲染区域，其中的元素布局不会受外界的影响
 
 * BFC区域不会与float box重叠
 
@@ -86,11 +86,11 @@ BFC可以做什么：
 
 * 利用BFC防止外边框折叠：将元素放在不同的BFC中，可以避免发生外边距
 
-* BFC包含浮动：是浮动元素的父容器高度被撑高
+* BFC包含浮动：是浮动元素的父容器高度被撑高（给父元素添加上overflow:hidden的样式）
 
 * 使用BFC避免文字环绕： 盒子会重叠在BFC元素的下面，但是文字会移位，解决方法是新建一个BFC
 
-* 在多列布局中使用BFC
+* 在多列布局中使用BFC，避免最后一列移出发到最后一行
 
 ### 5、垂直居中的方法
 
