@@ -192,4 +192,8 @@ display: -webkit-box;
 overflow: hidden;
 ```
 
-### 8、 
+### 8、 前端性能优化
+
+* 1、对高频触发的事件进行节流和消抖,减少触发的频率（resize, scroll和touchmove事件进行节流和防抖）
+
+* 

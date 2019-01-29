@@ -641,6 +641,7 @@ mc.addEventListener('message', event => {
   }
 })
 ```
+
 ### 16、浏览器的缓存策略
 
 * 强缓存：
@@ -660,6 +661,7 @@ mc.addEventListener('message', event => {
 * 对于代码文件来说，通常使用Cache-Control:max-ag = 31536000并配合策略缓存使用，然后对文件进行指纹处理，一旦文件名改动就立即下载新的文件
 
 ### 17、如何渲染几万条数据而页面不会卡住
+
 这道题考察了如何在不卡住页面的情况下渲染数据，也就是说不能一次性将几万条都渲染出来，而应该一次渲染部分 DOM，那么就可以通过 requestAnimationFrame 来每 16 ms 刷新一次。
 
 ```
@@ -710,7 +712,8 @@ mc.addEventListener('message', event => {
 ```
 
 ### 18、事件委托
-  事件委托就是事件代理，利用事件冒泡，只指定一个事件处理程序，就可以管理一类型的数据
+
+事件委托就是事件代理，利用事件冒泡，只指定一个事件处理程序，就可以管理一类型的数据
   
 * 为什么使用事件代理: 在js中，添加到页面的事件处理程序的数量直接影响到页面的运行性能，因为需要不断地和DOM节点发生交互，访问DOM的次数越多，引起重绘重排的次数越来越多，就会延长页面的交互就绪时间，使用事件委托 **就会将所有的操作都放到js程序中，与DOM的操作只需要交互一次，这样就能大大减少DOM的操作**
 
@@ -788,5 +791,261 @@ function flatten(arr) {
 console.log(flatten(arr))
 ```
 
-* 
+### 20、var、let、const的区别
+
+- 1、var、let、const的主要区别是
+
+* 块级作用域
+
+* 不存在变量提升
+
+* 暂时性的死区
+
+* 不可重复声明
+
+* let、const生命的全局变量不会挂在顶层对象上
+
+- 2、const命令两个注意点：
+
+* const声明之后必须马上赋值，否则就会立即报错
+
+* const简单类型一旦声明就不能再更改，复杂类型（数组，对象等）指针指向的地址不能再改，内部数据可以改
+
+### 21、CommonJS和ES6模块循环加载处理的区别
+
+* commonJS模块规范使用require语句导入模块，module.exports导出模块，输出的是值的拷贝，模块导入的也是值的拷贝，也就是说一旦输出这个值，这个值在模块内部的变化是监听不到的
+
+* ES6模块规范使用的是import语句导入模块，export语句导出模块，输出的是值的引用。ES6模块的运行机制和commonJS不同，遇到加载指令的时候不去执行这个模块，只会生成一个动态的值的引用，等到真正用到这个值的时候，再到模块中去取值，也就是谁原始值变了，那输入值也会发生改变
+
+
+- 1、CommonJs模块的加载原理
+
+CommonJS模块是一个脚本文件，require命令第一次加载该脚本的时候就会执行整个脚本，然后在内存中生成该模块的一个说明对象
+
+```
+{
+  id: '', //模块名，唯一
+  exports: { // 模块输出的各个接口
+
+  },
+  loaded: true, //模块的执行脚本是否已经结束
+}
+```
+
+以后用到这个模块的时候，就到对象的exports属性中去取值，即使再次执行require命令，也不会再次执行该模块，而是到缓存中去取值
+
+CommonJS模块是加载时执行，即脚本代码在require的时候就全部执行，一旦出现了某个模块的代码被“循环加载”，则只会输出已经执行的部分，没有执行的部分不会
+
+- 2、ES6模块的循环加载
+
+ES6模块和CommonJS有本质的区别，ES6模块对导出变量，方法，对象是动态的引用，遇到模块加载命令import时不会去执行模块，只是生成一个指向被加载模块的引用，需要开发者保证真正取值时才能取到值，只要引用是存在的，代码才能执行。
+
+#### 总结
+
+* (1)CommonJS模块是加载时执行，一旦出现某个模块被‘循环执行’，就只输出已经执行的部分，没有执行的部分不会输出
+
+* (2)ES6模块对导出模块，变量，对象是动态的引用，遇到模块加载指令import时不会去执行模块，只是生成一个指向一个被加载模块的引用
+
+### 22、防抖
+
+所谓防抖，是指在触发事件n秒内函数只能执行一次，如果在n秒内又触发了事件，则会重新计算函数的执行时间，防抖函数分为非立即执行版和立即执行版
+
+* 非立即执行版：触发事件之后不会立即执行，而是在n秒之后执行，如果在n秒之内又触发了事件，就会重新计算函数执行时间
+
+```
+function debounce(func, wait) {
+  var timeout
+
+  return function() {
+    var context = this
+    var args = arguments
+
+    if(timeout) clearTimeout(timeout)
+
+    timeout = setTimeout(() => {
+      func.apply(context, args)
+    }, wait)
+  }
+}
+```
+* 立即执行版： 触发事件后函数立即执行，然后n秒之内不触发函数才会继续执行
+
+```
+function debounce(func, wait) {
+  var timeout
+
+  return function() {
+    var context = this
+    var args = arguments
+
+    if(timeout) clearTimeout(timeout)
+
+    var callNow = !timeout
+
+    timeout = setTimeout(() => {
+      timeout = null
+    }, wait)
+
+    if(callNow) {
+      func.apply(context, args)
+    }
+  }
+}
+```
+
+**立即执行和非立即执行的防抖函数**
+
+* 例如在搜索引擎搜索问题的时候，我们希望用户在输入完最后一个字的时候再调用查询接口，这个时候适合 **延迟执行**的防抖函数，它是在一连串(间隔小于wait的)函数触发之后调用
+
+* 例如是用户的点赞行为，我们希望用户点击第一下的时候就去调用接口并且成功之后才改变star按钮的样子，用户就可以立马得到反馈是否star成功，这种情况下适合 **立即执行**的防抖函数，它总是在第一次调用，并且第二次调用必须与第一次的间隔大于wait才会触发
+
+```
+/**
+ * @desc 函数防抖
+ * @param func 函数
+ * @param wait 延迟执行毫秒数
+ * @param immediate true 表示立即执行， false 表示非立即执行
+ */
+function debounce(func, wait, immediate) {
+  var timeout
+
+  return function() {
+    var context = this
+    var args = arguments
+
+    if(timeout) clearTimeout(timeout)
+    if(immediate) {
+      let callNow = !timeout
+      timeout = setTimeout(() => {
+        timeout = null
+      }, wait);
+      if(callNow) func.apply(context, args)
+    } else {
+      timeout = setTimeout(() => {
+        func.apply(context, args)
+      }, wait);
+    }
+  }
+}
+```
+
+```
+/**
+ * 防抖函数，返回函数连续调用时，空闲时间必须大于或等于wait，func才会执行
+ *
+ * @param {function} func 回调函数
+ * @param {function} wait 表示窗口的间隔
+ * @param {function} immediate 设置为true时，表示立即执行函数
+ * @return {function} 返回客户端调用函数
+ */
+
+function debounce(func, wait = 50, immediate = true) {
+  let timer, context, args
+
+  const laster = () => setTimeout(() => {
+    timer = null
+
+    if(!immediate) {
+      func.apply(context, args)
+      context = args = null
+    }
+  }, wait)
+
+  return function(...params) {
+    if(!timer) {
+      timer = laster()
+
+      if(immediate) {
+        func.apply(this, params)
+      } else {
+        context = this
+        args = params
+      }
+    } else {
+      clearTimeout(timer)
+      timer = laster()
+    }
+  }
+}
+
+```
+
+### 23、节流
+
+所谓节流，连续触发事件，但是在n秒内只执行一次，节流会稀释函数的执行效率,每隔n秒只会执行一次
+
+* 时间戳版: 在持续触发事件的过程中，函数会立即执行，并且每1s执行一次
+
+```
+function throttle(func, wait) {
+  var previous = 0 
+  return function() {
+    var now = Date.now()
+    var context = this
+    var args = arguments
+
+    if(now - previuos > wait) {
+      func.apply(context, args)
+      previous = now
+    }
+  }
+}
+```
+
+* 定时器版：在持续触发事件的过程中，函数不会立即执行，并且每1s执行一次，在停止触发事件后，函数还会执行一次
+
+```
+function throttle(func, wait) {
+  var timeout
+
+  return function() {
+    var context = this
+    var args = arguments
+    if(!timeout) {
+      timeout = setTimeout(() => {
+        timeout = null
+        func.apply(context, args)
+      }, wait)
+    }
+  }
+}
+
+```
+
+**双剑合璧版**
+
+```
+function throttle(func, wait, type) {
+  if(type == 1) {
+    var previous = 0
+  } else if(type == 2) {
+    var timeout
+  }
+  return function () {
+    var context = this
+    var args = arguments
+
+    if(type == 1) {
+      var now = Date.now()
+
+      if(now - previous > wait) {
+        func.apply(context, args)
+        previous = now
+      }
+    } else if(type == 2) {
+      if(!timeout) {
+        timeout = setTimeout(() => {
+          timeout = null
+          func.apply(context, args)
+        }, wait)
+      }
+    }
+  }
+
+}
+ 
+```
+**防抖和节流的区别**
+
+防抖和节流的作用都是防止函数的多次调用，区别在于，假设一个用户一直在触发函数，且每次触发函数的间隔小于wait，防抖函数只会调用一次，而节流函数会每隔一段时间执行函数
 
