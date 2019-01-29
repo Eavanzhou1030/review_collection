@@ -1049,3 +1049,62 @@ function throttle(func, wait, type) {
 
 防抖和节流的作用都是防止函数的多次调用，区别在于，假设一个用户一直在触发函数，且每次触发函数的间隔小于wait，防抖函数只会调用一次，而节流函数会每隔一段时间执行函数
 
+
+### 24、this的指向问题
+
+```
+ var name = 'windowName'
+ function a() {
+   var name = 'cherry'
+   console.log(this.name)
+   console.log('inner:' + this)
+ }
+
+ a()
+ console.log('outer：', this)
+
+// windowName
+// window对象
+// window对象
+```
+
+```
+var name = 'windowName'
+var a = {
+  name: 'cherry',
+  fn: function() {
+    console.log(this.name)
+  }
+}
+
+a.fn() //cherry
+window.a.fn() // cherry
+```
+
+```
+var name = 'windowName'
+var a = {
+  name: cherry,
+  fn: function() {
+    console.log(this.name)
+  }
+}
+
+var f = a.fn
+f() // windowName
+```
+
+```
+var name = 'windowName'
+
+function fn() {
+  var name = 'cherry'
+  innerFunction()
+  function innerFunction() {
+    console.log(this.name)
+  }
+}
+
+fn() // windowName
+```
+
