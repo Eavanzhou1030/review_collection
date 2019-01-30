@@ -1108,3 +1108,269 @@ function fn() {
 fn() // windowName
 ```
 
+### 25、一行代码实现数据去重
+
+[...new Set([2,3,4,1,5,2,5])]
+
+### 26、数组去重的方法：
+
+- 1、双层循环
+
+```
+var arr = [1, 1, '1', '1']
+
+function unique(arr) {
+  let res = []
+
+  for(var i = 0, len = arr.length; i < len; i++) {
+    for(var j = 0, resLen = res.length; j < resLen; j++) {
+      if(arr[i] === res[j]) {
+        break
+      }
+    }
+
+    if(j === res.length) {
+      res.push(arr[i])
+    }
+  }
+  return res
+}
+
+unique(arr)
+```
+嵌套循环的方式，外层循环arr，内层循环res，如果arr[i]的值跟res[j]的值相等，则跳出循环，如果不相等，说明值是唯一的，这是的j会等于res的长度，根据这个判断条件将值添加到res
+
+- 2、indexOf
+
+```
+var arr = [1, 1, '1', '1']
+
+function unique(arr) {
+  var res = []
+
+  for(var i = 0, len = arr.length; i < len; i++) {
+    var current = arr[i]
+    if(res.indexOf(current) == -1) {
+      res.push(current)
+    }
+  }
+  return res
+}
+
+unique(arr)
+```
+
+- 3、排序后去重
+
+```
+var arr = [1, 1, '1', '1']
+
+function unique(arr) {
+  var res = []
+  var sortArr = arr.concat().sort()
+  var seen
+
+  for(var i = 0, len = arr.length; i < len; i++) {
+    if(!i || seen !== sortArr[i]) {
+      res.push(sortArr[i])
+    }
+    seen = sortArr[i]
+  }
+  return res
+}
+unique(arr)
+```
+
+- 4、unique API
+```
+var arr1 = [1, 2, '1', 2, 1]
+var arr2 = [1, 1, 2, '1', 2]
+
+function unique(arr, isSort) {
+  var res = []
+  var seen = []
+
+  for(var i = 0, len = arr.length; i < len; i++) {
+    var value = arr [i]
+    if(isSort) {
+      if(!i || seen != value) {
+        res.push(value)
+      }
+      seen = value
+    } else if (res.indexOf(value) == -1) {
+      res.push(arr[i])
+    }
+  }
+  return res
+}
+```
+
+- 5、优化：不区分大小写去重
+
+```
+var arr3 = [1, 1, 'a', 'A', 2, 2]
+
+function unique(arr, isSorted, iteratee) {
+  var res = []
+  var seen = []
+
+  for(var i = 0, len = arr.length; i < len; i++) {
+    var value = arr[i]
+    var computed = iteratee ? iteratee(value, i, arr) : value
+
+    if(isSorted) {
+      if(!i || seen !== value) {
+        res.push(value)
+      }
+      seen = value
+    } else if(iteratee) {
+      if(seen.indexOf(computed) == -1) {
+        seen.push(computed)
+        res.push(value)
+      }
+    } else if(res.indexOf(value) == -1){
+      res.push(value)
+    } 
+  }
+
+  return res
+}
+
+console.log(unique(arr3, false, function(item){
+  return typeof item == 'string' ? item.toLowerCase() : item
+})); 
+```
+
+- 6、filter
+
+```
+var arr = [1, 1, 2, 1, '1']
+
+function unique(arr) {
+  var res = arr.filter((item, index, arr) => {
+    return arr.indexOf(item) == index
+  })
+
+  return res
+}
+
+console.log(unique(arr))
+```
+
+**filter实现排序去重**
+
+```
+var arr = [1, 1, 2, 1, '1']
+
+function unique(arr) {
+  return arr.concat().sort().filter((item, index, arr) => {
+    return !index || item !== arr[index - 1]
+  })
+}
+console.log(unique(arr))
+```
+
+- 7、Object键值对
+
+该方法可以使用一个空的Object对象，将数组的value作为object的key值， obj[value] = true
+
+```
+var arr = [1, 1, 2, 1, '1']
+
+function unique(arr) {
+  var obj = {}
+
+  return arr.filter((item, key, arr) => {
+    return obj.hasOwnProperty(item) ? false : (obj[item] = true)
+  })
+}
+console.log(unique(arr)) // [1, 2]
+
+```
+
+这个时候1和'1'是不同的，但是会被判断为同一个值,这是因为**对象的属性只能是字符串**,使用typeof item + item作为key值
+
+```
+var arr = [1, 1, 2, 1, '1']
+
+function unique(arr) {
+  var obj = {}
+
+  return arr.filter((item, key, arr) => {
+    return obj.hasOwnProperty(typeof item + item) ? false : (obj[typeof item + item] = true)
+  })
+}
+
+console.log(unique(arr)) // [1, 2, '1']
+```
+
+- 8、ES6的Set和Map数据类型
+
+```
+var arr = [1, 1, 2, 1, '1']
+
+function unique(arr) {
+  return Array.from(new Set(arr))
+}
+
+console.log(unique(arr))
+```
+
+```
+function unique(arr) {
+  return [...new Set(arr)]
+}
+```
+
+```
+var unique = (a) => [...new Set(a)]
+```
+
+使用Map数据类型
+
+```
+var arr = [1, 1, 2, 1, '1']
+
+function unique(arr) {
+  const seen = new Map()
+  return arr.filter(a => !seen.has(a) && seen.set(a, 1))
+}
+
+console.log(unique(arr))
+```
+
+**注意**
+
+```
+var arr = [1, 2, NaN]
+arr.indexOf(NaN) // -1
+
+这是因为indexOf的底层就是 === ，NaN === NaN为false，所以indexOf是找不到NaN的
+```
+
+**js中的特殊类型判断**
+
+```
+var str1 = '1';
+var str2 = new String('1');
+
+console.log(str1 == str2); // true
+console.log(str1 === str2); // false
+
+console.log(null == null); // true
+console.log(null === null); // true
+
+console.log(undefined == undefined); // true
+console.log(undefined === undefined); // true
+
+console.log(NaN == NaN); // false
+console.log(NaN === NaN); // false
+
+console.log(/a/ == /a/); // false
+console.log(/a/ === /a/); // false
+
+console.log({} == {}); // false
+console.log({} === {}); // false
+```
+
+### 27、
