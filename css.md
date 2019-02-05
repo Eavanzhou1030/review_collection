@@ -392,3 +392,491 @@ css3中引入了一个新的单位vw/vh，与视图窗口有关，vw表示相对
   **vw和vh的兼容性问题**
 
   ie9-11不支持vmin和vmax，opera整体上不支持vw和vh
+
+### 11、居中布局
+
+- 1、水平居中
+
+  * inline-block + text-align
+
+  ```
+  .parent {
+    text-align: center;
+  }
+
+  .child {
+    display: inline-block;
+  }
+  ```
+
+  * table + margin
+
+  ```
+  .child {
+    display: table;
+    margin: 0 auto;
+  }
+  ```
+
+  * absolute + transform
+
+  ```
+  .parent {
+    position: relative;
+    height: 1.5rem;
+  }
+  .child {
+    position: absolute;
+    left:50%;
+    transform: translateX(-50%)
+  }
+  ```
+
+  * flex + justify-content
+
+  ```
+  .parent {
+    display: flex;
+    justify-content: center;
+  }
+  .child {
+    margin: 0 auto;
+  }
+  ```
+- 2、垂直居中
+
+  * table-cell + vertical-align
+
+  ```
+  .parent {
+    display: table-cell;
+    vertical-align: middle;
+  }
+  ```
+
+  * absolute + transform
+
+  ```
+  .parent {
+    position: relative;
+  }
+  .child {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  ```
+
+  * flex + align-items
+
+  ```
+  .parent {
+    display: flex;
+    align-items: center;
+  }
+  ```
+
+- 3、水平垂直居中
+
+  * inline-block + table-cell + text-align + vertical-align
+
+  ```
+  .parent {
+    text-align: center;
+    display: table-cell;
+    vetical-align: middle;
+  }
+  .child {
+    display: inline-block;
+  }
+  ```
+
+  * absolute + transform
+
+  ```
+  .parent {
+    position: relative;
+  }
+  .child {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%)
+  }
+  ```
+
+  * flex
+
+  ```
+  .parent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  ```
+
+### 12、多列布局
+
+- 1、一列定宽，一列自适应
+
+  * float + margin：此方案对于定宽布局比较好
+
+  ```
+  .left {
+    width: 100px;
+    float: left;
+  }
+  .right {
+    margin-left: 120px;
+  }
+  ``` 
+
+  * float + overflow：不定宽布局
+
+  ```
+  .left {
+    float: left;
+    width: 100px;
+    margin-right: 20px;
+  }
+  .right {
+    overflow: hidden;
+  }
+  ``` 
+
+  * table
+
+  ```
+  .parent {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .left, .right {
+    display: table-cell;
+  }
+  .left {
+    width: 100px;
+    padding-right:20px;
+  }
+  ```
+
+  * flex
+
+  ```
+  .parent {
+    display: flex;
+  }
+  .left {
+    width: 100px;
+    padding-right: 20px;
+  }
+  .right {
+    flex: 1;
+  }
+  ```
+
+- 2、多列定宽，一列自适应
+
+  * float + overflow
+
+  ```
+    .left, .center {
+      float: left;
+      width: 100px;
+      margin-right: 20px;
+    }
+    .right {
+      overflow: hidden;
+    }
+  ```
+
+  * table 
+
+  ```
+  .parent {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+  .left, .center, .right {
+    display: table-cell;
+  }
+  .right {
+    width: 100px;
+    padding-right: 20px;
+  }
+  ```
+
+  * flex
+
+  ```
+  .parent {
+    display: flex;
+  }
+
+  .left, .center {
+    width: 100px;
+    padding-left: 20px;
+  }
+  .right {
+    flex: 1;
+  }
+  ```
+
+- 3、一列不定宽，一列自适应
+
+  * float + overflow
+
+  ```
+  .left {
+    float: left;
+    margin-right: 20px;
+  }
+
+  .right {
+    overflow: hidden;
+  }
+
+  .left p {
+    width: 200px;
+  }
+  ```
+
+  * table 
+
+  ```
+  .parent {
+    display: table;
+    width: 100%;
+  }
+  .left, .right {
+    display: table-cell;
+  }
+  .left {
+    width: 0.1%;
+    padding-right: 20px;
+  }
+  .left p {
+    width: 200px;
+  }
+  ```
+
+  * flex
+
+  ```
+  .parent {
+    display: flex;
+  }
+  .left {
+    margin-right: 20px;
+  }
+  .right {
+    flex: 1;
+  }
+  .left p{
+    width: 200px;
+  }
+  ```
+
+- 4、多列不定宽，一列自适应
+
+  * float + overflow
+
+  ```
+  .left, .center {
+    float: left;
+    margin-right: 20px;
+  }
+  .right {
+    overflow: hidden;
+  }
+  .left p, .center p {
+    width: 100px;
+  }
+  ```
+
+- 5、等分
+
+  * float + margin
+
+  ```
+  .parent {
+    margin-left: -20px;
+  }
+  .child {
+    float: left;
+    width: 25%;
+    padding-left: 20px;
+    box-sizing: border-box;
+  }
+  ```
+
+  * table + margin
+
+  ```
+  .parent-fix {
+    margin-left: -20px;
+  }
+  .parent {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+  .column {
+    display: table-cell;
+    padding-left: 20px;
+  }
+  ```
+
+  * flex
+
+  ```
+  .parent {
+    display: flex;
+  }
+  .column {
+    flex: 1;
+  }
+  .column + .column {
+    margin-left: 20px;
+  }
+  ```
+
+- 6、等高
+
+  * float + overflow
+
+  ```
+  .parent {
+    overflow: hidden;
+  }
+  .left, .right {
+    padding-bottom: 9999px;
+    margin-bottom: -9999px;
+  }
+  .left {
+    float: left;
+    width: 100px;
+  }
+  .right {
+    overflow: hidden;
+  }
+  ``` 
+
+  * table
+
+  ```
+  .parent {
+    display: table;
+    width: 100%;
+  }
+  .left {
+    display: table-cell;
+    width: 100px;
+    margin-right: 20px;
+  }
+  .right {
+    display: table-cell;
+  }
+  ```
+
+  * flex
+
+  ```
+  .parent {
+    display: flex;
+    width: 100%;
+  }
+  .left {
+    width: 100px;
+  }
+  .right {
+    flex: 1;
+  }
+  ```
+
+- 7、并排等分，单排对齐靠左布局
+
+```
+.main {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+}
+.item {
+  display: inline-block;
+}
+.empty {
+  height: 0;
+  visibility: hidden;
+}
+```
+
+### 13、圣杯布局 & 双飞翼布局
+
+- 1、圣杯布局
+
+```
+<div class="container">
+  <div class="header">header</div>
+  <div class="wrapper clearfix">
+    <div class="main col">main</div>
+    <div class="left col">left</div>
+    <div class="right col">right</div>
+  </div>
+  <div class="footer">footer</div>
+</div>
+```
+
+```
+.container {
+  width: 500px;
+  margin: 50px auto;
+}
+.wrapper {
+  padding: 0 100px 0 100px;
+}
+.col {
+  position: relative;
+  float: left;
+}
+.header, .footer {
+  height: 50px;
+}
+.main {
+  width: 100%;
+  height: 200px;
+}
+.left {
+  width: 100px;
+  height: 200px;
+  margin-left: -100%;
+  left: 100px;
+
+}
+.right {
+  width: 100px;
+  height: 200px;
+  margin-right: -100%;
+  right: -100px;
+}
+.clearfix:after {
+  content: '';
+  display: block;
+  clear: both;
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+}
+```
+
+- 2、双飞翼布局
+
+```
+<div class="container">
+  <div class="header">header</div>
+  <div class="wrapper ">
+</div>
+```
