@@ -58,6 +58,9 @@ padding-box: content + padding
 
 * link的样式权重高于@import的
 
+* link可以使用动态js引入，@import不行
+
+* link的功能较多，可以定义RSS，定义Rel等功能，而import只能加载css
 
 ### 4、BFC（块级格式化上下文，用于清除浮动，防止margin重叠等）
 链接： https://www.cnblogs.com/libin-1/p/7098468.html
@@ -70,7 +73,11 @@ padding-box: content + padding
 
 * 计算BFC的高度时，浮动元素也会参与计算
 
-会生成BFC的元素：
+* 属于同一个 BFC 的两个相邻 Box 垂直排列
+
+* 属于同一个 BFC 的两个相邻 Box 的 margin 会发生重叠
+
+触发生成BFC的元素：
 
 * 根元素
 
@@ -86,9 +93,11 @@ BFC可以做什么：
 
 * 利用BFC防止外边框折叠：将元素放在不同的BFC中，可以避免发生外边距
 
-* BFC包含浮动：是浮动元素的父容器高度被撑高（给父元素添加上overflow:hidden的样式）
+* BFC包含浮动：是浮动元素的父容器高度被撑高（给父元素添加上overflow:hidden的样式，清除浮动的原理是两个div都位于同一个 BFC 区域之中）
 
 * 使用BFC避免文字环绕： 盒子会重叠在BFC元素的下面，但是文字会移位，解决方法是新建一个BFC
+
+* 自适应两栏布局
 
 * 在多列布局中使用BFC，避免最后一列移出发到最后一行
 
@@ -397,7 +406,7 @@ css3中引入了一个新的单位vw/vh，与视图窗口有关，vw表示相对
 
 - 1、水平居中
 
-  * inline-block + text-align
+  * inline-block + text-align（行内元素）
 
   ```
   .parent {
@@ -409,7 +418,7 @@ css3中引入了一个新的单位vw/vh，与视图窗口有关，vw表示相对
   }
   ```
 
-  * table + margin
+  * table + margin（块级元素）
 
   ```
   .child {
@@ -477,6 +486,8 @@ css3中引入了一个新的单位vw/vh，与视图窗口有关，vw表示相对
   ```
 
 - 3、水平垂直居中
+
+  * line-height: height
 
   * inline-block + table-cell + text-align + vertical-align
 
@@ -853,13 +864,13 @@ css3中引入了一个新的单位vw/vh，与视图窗口有关，vw表示相对
   width: 100px;
   height: 200px;
   margin-left: -100%;
-  left: 100px;
+  left: -100px;
 
 }
 .right {
   width: 100px;
   height: 200px;
-  margin-right: -100%;
+  margin-left: -100%;
   right: -100px;
 }
 .clearfix:after {
@@ -880,3 +891,242 @@ css3中引入了一个新的单位vw/vh，与视图窗口有关，vw表示相对
   <div class="wrapper ">
 </div>
 ```
+### 14、层叠上下文、层叠等级、层叠顺序以及z-index
+
+- 1、z-index并不是在任何元素上都有效果，它仅在定位元素(定义position属性，且position属性不为static的元素)有效
+
+- 2、判断元素在z轴上的堆叠顺序，不仅仅是比较两个元素的z-index值的大小，这个堆叠顺序实际上与层叠上下文、层叠等级有关。
+
+**什么是层叠上下文**
+
+如果一个元素含有层叠上下文（也就是说它是层叠上下文元素），可以理解为这个元素在z轴上“高人一等”，最终表现就是它离屏幕观察者更近。
+
+**层叠等级**
+
+* 在同一个层叠上下文中，它描述定义的是该层叠上下文中，层叠上下文元素在z轴上的上下顺序。
+
+* 在其他普通元素中，它描述的是这些元素在z轴上的上下顺序。
+
+类别“层叠上下文”和“层叠等级”，可以得出一个结论：
+
+- 1、普通元素的层叠等级优先级由所在的层叠上下文决定
+
+- 2、在同一层叠上下文中，层叠等级才有意义
+
+- 3、z-index的优先级最高
+
+**如何产生“层叠上下文”，就是如何让一个元素变成层叠上下文元素？**
+
+- 1、HTML的根元素html标签本身就是层叠上下文，称为“根层叠上下文”
+
+- 2、普通元素设置position属性为非static值并设置z-index属性为具体的值，产生层叠上下文
+
+- 3、css3中的新属性也可以产生层叠上下文
+
+  * flex
+  * transform
+  * opacity
+  * filter
+  * will-change
+  * -webkit-overflow-scrolling
+
+- 4、z-index为auto的时候不会产生层叠上下文，z-index为0的时候会产生层叠上下文
+
+**css3属性对层叠上下文的影响**
+
+css3中，元素属性只要满足以上条件之一，就会产生层叠上下文：
+
+- 1、父元素的display属性为flex|inline-flex,子元素属性z-index不为auto元素，子元素为层叠上下文元素
+
+- 2、元素的opacity属性值不为1
+
+- 3、元素的transform属性不为none
+
+- 4、元素mix-blend-mode属性值不为normal
+
+- 5、元素的filter属性不为none
+
+- 6、元素的isolation属性为isolate
+
+- 7、will-change指定的属性值为上面的任意一个
+
+- 8、元素的-webkit-overflow-scrolling属性值为touch
+
+
+```
+<html>
+  <style>
+    .div {
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+
+    p {
+      position: absolute;
+      font-size: 20px;
+      width: 100px;
+      height: 100px;
+    }
+
+    .a {
+      background-color: blue;
+      z-index: 1;
+    }
+
+    .b {
+      background-color: green;
+      z-index: 2;
+      top: 20px;
+      left: 20px;
+    }
+
+    .c {
+      background-color: red;
+      z-index: 3;
+      top: -20px;
+      left: 40px;
+    }
+  </style>
+
+  <body>
+    <div>
+      <p class="a"></p>
+      <p class="b"></p>
+    </div>
+
+     <div>
+      <p class="c"></p>
+    </div>
+  </body>
+</html>
+
+```
+
+因为p.a、p.b、p.c三个的父元素div都没有设置z-index，所以不会产生层叠上下文，所以.a、.b、.c都处于由<html></html>标签产生的“根层叠上下文”中，属于同一个层叠上下文，此时谁的z-index值大，谁在上面。
+
+```
+<html>
+  <style>
+    .div {
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+
+    .box1 {
+      z-index: 2
+    }
+
+    .box {
+      z-index: 1
+    }
+
+    p {
+      position: absolute;
+      font-size: 20px;
+      width: 100px;
+      height: 100px;
+    }
+
+    .a {
+      background-color: blue;
+      z-index: 100;
+    }
+
+    .b {
+      background-color: green;
+      z-index: 200;
+      top: 20px;
+      left: 20px;
+    }
+
+    .c {
+      background-color: red;
+      z-index: 999;
+      top: -20px;
+      left: 40px;
+    }
+  </style>
+
+  <body>
+    <div class="box1">
+      <p class="a"></p>
+      <p class="b"></p>
+    </div>
+
+     <div class="box2">
+      <p class="c"></p>
+    </div>
+  </body>
+</html>
+```
+我们发下，虽然p.c元素的z-index值为9999，远大于p.a和p.b的z-index值，但是由于p.a、p.b的父元素div.box1产生的层叠上下文的z-index的值为2，p.c的父元素div.box2所产生的层叠上下文的z-index值为1，所以p.c永远在p.a和p.b下面。
+同时，如果我们只更改p.a和p.b的z-index值，由于这两个元素都在父元素div.box1产生的层叠上下文中，所以，谁的z-index值大，谁在上面。
+
+**层叠顺序**
+
+层叠顺序表示元素发生层叠时按照特定的顺序在z轴上垂直显示，层叠顺序按照下图所示：
+
+![层叠顺序](./层叠顺序.jpg)
+
+这里需要注意的是：
+
+- 1、左上角"层叠上下文background/border"指的是层叠上下文元素的背景和边框。
+
+- 2、inline/inline-block元素的层叠顺序要高于block(块级)/float(浮动)元素。
+
+- 3、单纯考虑层叠顺序，z-index: auto和z-index: 0在同一层级，但这两个属性值本身是有根本区别的。
+
+**如何判断层叠顺序**
+
+- 1、首先哦按段两个元素是否处于同一个层叠上下文
+
+  * 如果是，谁的层叠等级高谁就在上面
+
+  * 如果两个不是在同一个层叠上下文，先比较所处的层叠上下文的层叠等级
+
+- 2、当两个元素的层叠等级，层叠顺序相同， 在DOM结构后面的元素的层叠等级在前面元素之上
+
+### 15、 选择器的优先级
+
+* !important > 行内样式 > #id > .class > tag > * > 继承 > 默认
+
+* 选择器从右到左解析
+
+### 16、清除浮动，防止父级元素高度为0
+
+* 通过添加尾元素清除浮动 
+
+```
+clearfix:after {
+  content: '';
+  display: table;
+  clear: both;
+}
+```
+
+* 创建父级的BFC
+
+* 父级元素设置高度
+
+### 17、css预处理器
+
+css预处理器的原理是：将类css语言通过webpack编译成浏览器可读的真正的css，预处理器的功能是：
+
+* 嵌套
+
+* 变量
+
+* 循环语句
+
+* 条件语句
+
+* 自动前缀
+
+* 单位转化
+
+* mixin复用
+
+
+
