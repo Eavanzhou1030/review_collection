@@ -96,6 +96,34 @@ Sec-Websocket-Key:x3JJHMbDL1EzLkh9GBhXDw==
 Sec-Websocket-Protocol: chat,superchat
 Sec-Websocket-Version: 13
 ```
+Sec-Websocket-Key是一个base64 encode的值，这个值是浏览器生成的，验证服务器是不是真的websocket
+Sec-Websocket-Protocol是一个用户自定义的字符串，用来区分同URL下，不同的服务所需要的协议
+Sec-Websocket-Version告诉服务器当前的协议版本
+
+发送给服务器之后，服务器会返回下面的内容，表示已经接受请求，成功建立websocket了！
+**这里开始也是http协议负责的最后区域，之后是完全按照websocket协议进行**
+
+```
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: HSmrc0sMlYUkAGmm5OPpG2HaGWk=
+Sec-WebSocket-Protocol: chat
+```
+Sec-WebSocket-Accept是经过服务器确认的，并且加密过的Sec-Websocket-Key
+Sec-WebSocket-Protocol则是表示最终使用的协议
+
+##### websocket的作用
+
+- 1、ajax轮询： 让浏览器隔几秒就发送一个请求，询问浏览器是否有新的信息
+
+- 2、long poll：原理和ajax轮询的原理差不多，都是采用轮询的方式，不过采取的是阻塞模型（一直打电话，没收到就不挂电话），也就是说，客户端发起连接后，如果没消息，就一直不返回Response给客户端。直到有消息才返回，返回完之后，客户端再次建立连接，周而复始。
+
+- 3、websocket实现的问题是：当http升级为websocket服务之后，**服务端可以主动推送数据给客户端**
+
+至于怎么在不支持Websocket的客户端上使用Websocket。。答案是： 不能
+
+但是可以通过上面说的 long poll 和 ajax 轮询 来 模拟出类似的效果
 
 ### 5、http请求的方式，HEAD方式
 
