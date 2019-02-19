@@ -90,6 +90,31 @@ function cStairs(n) {
   }
 }
 
+function fib(num) {
+  var a = 0, b = 1, arr = [0, 1]
+  while(arr.length < num) {
+    [a, b] = [b, b + a]
+    arr.push(b)
+  }
+  return arr
+}
+
+'use strict'
+function* fib(max) {
+  var a = 0, b = 1, n = 0
+  while(n < max) {
+    yield a
+    [a, b] = [b, a + b]
+    n++
+  }
+  return;
+}
+
+for(var x of fib(10)) {
+  console.log(x)
+}
+
+
 /**
  * 数组去重：双重循环
  */
@@ -307,14 +332,14 @@ function ajax() {
       document.getElementById('myDiv').innerHTML = xmlHttp.responseText
     }
 
-    xmlHttp.open('GET', url, true)
-
-    // 设置头部信息
-    xmlHttp.setRequestHeader('Content-Type', "application/x-www-form-urlencoded")
-
-    // 将消息发送到服务器
-    xmlHttp.send()
   }
+  xmlHttp.open('GET', url, true)
+
+  // 设置头部信息
+  xmlHttp.setRequestHeader('Content-Type', "application/x-www-form-urlencoded")
+
+  // 将消息发送到服务器
+  xmlHttp.send()
 }
 
 /**
@@ -341,24 +366,6 @@ var EventUtil = {
     }
   }
 }
-
-/**
- * js的继承方式
- */
-
-// 定义一个父类
-function Animal(name) {
-  this.name = name
-  this.sleep = function() {
-    console.log(this.name + '正在睡觉')
-  }
-}
-
-// 原型方法
-Animal.prototype.eat = function(food) {
-  console.log(this.name + '正在吃' + food)
-}
-
 
 /**
  * 使用Promise的实例

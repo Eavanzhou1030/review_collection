@@ -501,3 +501,123 @@ function Promise(fn) {
   fn(resolve)
 }
 ```
+### 8、实现一个new实例对象的过程
+```
+function create() {
+  let obj = new Object()
+  let Con = [].shift.call(arguments)
+  obj.__proto__ = Con.prototype
+  let result = Con.apply(obj, arguments)
+  return typeof result === 'object' ? result : obj
+}
+```
+运算符的优先级
+
+```
+function Foo() {
+  return this
+}
+
+Foo.getName = function() {
+  console.log(1)
+}
+
+Foo.prototype.getName = function() {
+  console.log(2)
+}
+
+new Foo.getName() // 1
+new Foo().getName() //2
+
+
+new (Foo.getName());
+(new Foo()).getName();
+```
+对于第一个函数来说，先执行了 Foo.getName() ，所以结果为 1；对于后者来说，先执行 new Foo() 产生了一个实例，然后通过原型链找到了 Foo 上的 getName 函数，所以结果为 2。
+
+### 9、instanceof
+
+instanceof可以正确的判断对象的类型，因为内部机制是通过判断实例对象的原型链上是否存在其构造函数的prototype属性
+
+```
+function instanceof(left, right) {
+  let prototype = right.prototype
+  left = left.__proto__
+  while(true) {
+    if(left == null) {
+      return false
+    }
+    if(prototype == left) {
+      return true
+    }
+    left = left.__proto__
+  }
+}
+```
+
+### 9、深拷贝、浅拷贝
+```
+let a = {
+  age: 1
+}
+
+let b = a
+b.age = 3
+console.log(a.age) // 3
+```
+
+- 1、浅拷贝
+
+* Object.assign()
+
+```
+let a = {
+  age: 1
+}
+
+let b = Object.assign({}, a)
+a.age = 3
+console.log(b.age) // 1
+```
+
+* 展开运算符(...)
+
+```
+let a = {
+  age: 1
+}
+
+let b = {...a}
+a.age = 2
+console.log(b.age) // 1
+```
+
+- 2、深拷贝
+
+* JSON.parse(JSON.stringify(object))
+
+```
+var  a = {
+  age: 1,
+  jobs: {
+    first: 1
+  }
+}
+var b = {...a}
+a.jobs.first = 4
+console.log(b.jobs.first) // 4
+
+```
+
+```
+var  a = {
+  age: 1,
+  jobs: {
+    first: 1
+  }
+}
+
+var b = JSON.parse(JSON.stringify(a))
+a.jobs.first = 3
+console.log(b.jobs.first) // 1
+```

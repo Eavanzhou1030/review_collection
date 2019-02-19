@@ -217,7 +217,27 @@ var c1 = new Child('小白', 20)
 
 promise、async/await、generator
 
-### 7、generator生成器(????)
+### 7、generator生成器
+
+Generator是ES6中新增的语法，和Promise一样，都可以用来异步编程。
+
+```
+// 使用 * 表示这是一个 Generator 函数
+// 内部可以通过 yield 暂停代码
+// 通过调用 next 恢复执行
+
+function* test() {
+  let a = 1 + 2
+  yield 2
+  yield 3
+}
+
+let b = test()
+console.log(b.next())
+console.log(b.next())
+console.log(b.next())
+```
+加上 * 的函数执行后拥有了 next 函数，也就是说函数执行后返回了一个对象。每次调用 next 函数可以继续执行被暂停的代码
 
 ```
 <!-- 可以使用return和yield返回多次 -->
@@ -845,6 +865,8 @@ ES6模块和CommonJS有本质的区别，ES6模块对导出变量，方法，对
 * (1)CommonJS模块是加载时执行，一旦出现某个模块被‘循环执行’，就只输出已经执行的部分，没有执行的部分不会输出
 
 * (2)ES6模块对导出模块，变量，对象是动态的引用，遇到模块加载指令import时不会去执行模块，只是生成一个指向一个被加载模块的引用
+
+* (3)前者是同步导入，因为用于服务端，文件都在本地，同步导入即使卡住主线程影响也不大。而后者是异步导入，因为用于浏览器，需要下载文件，如果也采用同步导入会对渲染有很大影响
 
 ### 22、防抖
 
