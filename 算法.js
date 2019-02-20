@@ -396,20 +396,88 @@ new Promise(fun1).then(val => {
 })
 
 /**
- * 实现一个完整的Promise
+ * 实现查询字符串的解析
+ */
+function parseQueryString() {
+  var str = location.search;
+  str = str.substring(1,str.length);
+  
+  var arr = str.split("&");
+  var obj = new Object();
+  
+  for(var i = 0; i < arr.length; i++) {
+      var tmp_arr = arr[i].split("=");
+      obj[decodeURIComponent(tmp_arr[0])] = decodeURIComponent(tmp_arr[1]);
+  }
+  return obj;
+}
+
+function searchToObject(str) {
+  if(str === undefined) return
+  str = str.substr(1)
+  var arr = str.split('&'),
+  obj = {},
+  newArr = []
+  arr.map(item => {
+    newArr = item.split('=')
+    if(newArr[0] != undefined) {
+      obj[newArr[0]] = newArr[1]
+    }
+  })
+  return obj
+}
+
+var str1 = '?query=js代码片段&type=all'
+searchToObject(str1)
+
+/**
+ * 如何计算出字符串中各个字符的数量
  */
 
-function Promise(fn) {
-  // 需要一个成功时的回调
-  var callback
-  // 一个实例
-  this.then = function(done) {
-    callback = done
+function count(str) {
+  if(!str || str.length == 0) {
+    return 
   }
 
-  function resolve() {
-    callback()
+  let hash = {}
+  for(let i = 0; i < str.length; i++) {
+    if(!hash[str[i]]) {
+      hash[str[i]] = 1
+    } else {
+      hash[str[i]]++
+    }
   }
 
-  fn(resolve)
+  return hash
+}
+
+var str = 'aaabbtddjaajtt'
+count(str)
+
+/**
+ * 将字符串的首字母编程大写
+ */
+function upperCaseFirst(str) {
+  str = str.tirm()
+
+  if(!str.length) return str
+  if(str.length == 1) {
+    return str.toUpperCase()
+  }
+
+  return str.substr(0,1).toUpperCase() + str.substr(1)
+}
+
+/**
+ * 格式化时间
+ * 
+ * @param {Date} time 时间Date对象
+ * @param {string} fmt 时间格式标识符 y M d h m s q S
+ */
+function format(time, fmt) {
+  const o = {
+    'M+': time.getMonth() + 1,
+    'd+': time.getDate(),
+    
+  }
 }
