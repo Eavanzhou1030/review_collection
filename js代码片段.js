@@ -170,4 +170,24 @@ const initial = arr => arr.slice(0, -1)
  * rang初始化数组
  * 使用Array(end - start)创建所需长度的数组，使用map()来填充范围中的所需值，可以省略start使用的默认值0
  */
+const rangeArray = n => Array.apply(null, Array(n))
 
+
+
+
+/**
+ * filter的使用
+ */
+const difference = (a, b) => {
+  let s = new Set(b)
+  return a.filter(item => !s.has(item))
+}
+
+const intersection = (a, b) => {
+  let s = new Set(b)
+  return a.filter(item => s.has(item))
+}
+
+const union = (a, b) => Array.from(new Set([...a, ...b]))
+
+const shuffle = arr => arr.sort(() => Math.random() - 0.5)

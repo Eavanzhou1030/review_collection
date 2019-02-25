@@ -184,14 +184,23 @@ Array.prototype.unique = function() {
 }
 ```
 
-### 2、翻转一个字符串
+### 2、数组扁平化
+```
+const deepFaltten = arr => arr.reduce((init, val) => init.concat(Array.isArray(val) ? deepFaltten(val) : val), [])
+
+
+```
+
+
+
+### 3、翻转一个字符串
 ```
 function reverseStr(str) {
   return [...str].reverse().join('')
 }
 ```
 
-### 3、数据类型判断
+### 4、数据类型判断
 
 ```
 var a = 'hello world'
@@ -209,7 +218,7 @@ console.log(Object.prototype.toString.call(a) === '[object Function]')
 console.log(Object.prototype.toString.call(a) === '[object Function]')
 ```
 
-### 4、XHR的具体底层原理
+### 5、XHR的具体底层原理
 ```
 function ajax() {
   var xmlHttp
@@ -234,7 +243,7 @@ function ajax() {
 }
 ```
 
-### 5、js事件机制（IE,谷歌，火狐的区别）
+### 6、js事件机制（IE,谷歌，火狐的区别）
 ```
 var EventUtil = {
   addHandler: function(element, type, handler) {
@@ -259,7 +268,7 @@ var EventUtil = {
 }
 ```
 
-### 6、js的继承方法
+### 7、js的继承方法
 http://www.cnblogs.com/humin/p/4556820.html
 
 ```
@@ -456,7 +465,7 @@ console.log(cat instanceof Animal) //true
 console.log(cat instanceof Cat) // true
 ```
 
-### 7、实现一个完整的Promise
+### 8、实现一个完整的Promise
 
 Promise主要是为了解决异步回调的问题，使用Promise来解决异步回调会使得代码层次清晰。
 
@@ -501,7 +510,7 @@ function Promise(fn) {
   fn(resolve)
 }
 ```
-### 8、实现一个new实例对象的过程
+### 9、实现一个new实例对象的过程
 ```
 function create() {
   let obj = new Object()
@@ -555,7 +564,7 @@ new Foo().getName();
 new new Foo().getName();
 ```
 
-### 9、instanceof
+### 10、instanceof
 
 instanceof可以正确的判断对象的类型，因为内部机制是通过判断实例对象的原型链上是否存在其构造函数的prototype属性
 
@@ -575,7 +584,7 @@ function instanceof(left, right) {
 }
 ```
 
-### 9、深拷贝、浅拷贝
+### 11、深拷贝、浅拷贝
 ```
 let a = {
   age: 1
